@@ -1,0 +1,32 @@
+.card-body {
+    background-color: red;
+    border: 1px solid black;
+    margin-bottom: 30px
+}
+
+.card-title {
+    color: white;
+    background-color: black;
+    display: inline-block;
+    border-radius: 5px;
+    padding: 5px 15px 5px 15px;
+}
+
+.card-footer {
+    background-color: peachpuff !important;
+}
+
+.card:hover .card-body {
+    background-color: mediumpurple !important;
+}
+
+.card:hover .card-title {
+    color: black;
+    background-color: white !important;
+}
+
+.card-block {
+    border-top: 1px sold black;
+    background-color: antiquewhite;
+    padding: 10px;
+}

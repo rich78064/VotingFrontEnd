@@ -1,0 +1,172 @@
+﻿@model List<Candidate>
+@{
+    var hasVoted = (bool)ViewBag.HasVoted;
+}
+<h2>Who is the GOAT in NBA History in your mind?</h2>
+
+<div class="row">
+@foreach (var candidate in Model)
+{
+    <div class="col-xl-3 col-lg-4 col-md-6 col-sm-12">
+        <div class="card">
+            <img src="~/images/@candidate.PhotoUrl" class="card-img-top" alt="@candidate.Name" />
+            <div class="card-body text-center">
+                <h5 class="card-title">@candidate.Name</h5>
+                <p>票數：<span id="vote-count-@candidate.Id">@candidate.VoteCount</span></p>
+                <button 
+                    class="btn btn-primary vote-button" 
+                    data-id="@candidate.Id"
+                    @(hasVoted ? "disabled" : "")>
+                    <span class="button-text">VOTE</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    }
+}
+</div>
+
+<div class="text-center mt-4">
+    <button id="delete-vote-btn" 
+            class="btn btn-danger" 
+            style="display:@(hasVoted ? "inline-block" : "none")">
+        刪除我的投票
+    </button>
+</div>
+
+<!-- Modal 彈窗 -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="feedbackModalLabel">系統訊息</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="關閉"></button>
+      </div>
+      <div class="modal-body" id="feedbackMessage">
+        <!-- 這裡是訊息 -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<!-- 先載入 jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- 再載入 Bootstrap -->
+<script src="https://cdn.jsdelivr.net/....../js/bootstrap.bundle.min.js"></script>
+<!-- 再載入 Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/....../font/bootstrap-icons.css" rel="stylesheet">
+<script>
+    $(document).ready(function () {
+        var feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+        function showModalMessage(message) {
+            $("#feedbackMessage").text(message);
+            feedbackModal.show();
+        }
+        // 投票按鈕
+        $('.vote-button').click(function (e) {
+            e.preventDefault();
+            const button = $(this);
+            const candidateId = button.data('id');
+            $.ajax({
+                url: '/Votes/VoteAjax',
+                type: 'POST',
+                data: { candidateId: candidateId },
+                success: function (response) {
+                    if (response.success) {
+                        button.prop('disabled', true)
+                            .removeClass('btn-primary')
+                            .addClass('btn-success')
+                            .html('<i class="bi bi-check-lg"></i> 已投票')
+                            .fadeOut(200)
+                            .fadeIn(200);
+                        $('#vote-count-' + candidateId).text(response.newCount);
+                        $('#delete-vote-btn').show();
+                        showModalMessage('投票成功！謝謝您的支持！');
+                    } else {
+                        showModalMessage(response.message);
+                    }
+                },
+                error: function () {
+                    showModalMessage('投票失敗，請稍後再試！');
+                }
+            });
+        });
+        // 刪除投票按鈕
+        $('#delete-vote-btn').click(function (e) {
+            e.preventDefault();
+            $.ajax({
+                url: '/Votes/DeleteVoteAjax',
+                type: 'POST',
+                success: function (response) {
+                    if (response.success) {
+                        $('.vote-button').prop('disabled', false)
+                            .removeClass('btn-success')
+                            .addClass('btn-primary')
+                            .html('<span class="button-text">投票</span>');
+                        $('#vote-count-' + response.candidateId).text(response.newCount);
+                        $('#delete-vote-btn').hide();
+                        showModalMessage('您的投票紀錄已刪除，可以重新投票。');
+                    } else {
+                        showModalMessage(response.message);
+                    }
+                },
+                error: function () {
+                    showModalMessage('刪除失敗，請稍後再試！');
+                }
+            });
+        });
+    });
+</script>
+}
+
+<!-- 引入 Bootstrap Icons 用來顯示 ✔ -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/....../font/bootstrap-icons.css" />
+
+
+@*
+@model IEnumerable<VotingFrontEnd.Models.Vote>
+
+@{
+    ViewData["Title"] = "Index";
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.User)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Candidate)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.User.Id)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Candidate.Id)
+            </td>
+            <td>
+                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+            </td>
+        </tr>
+}
+    </tbody>
+</table>
+*@
